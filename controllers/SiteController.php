@@ -2,13 +2,14 @@
 
 namespace app\controllers;
 
+use app\models\RegisterForm;
+use app\models\User;
 use Yii;
 use yii\filters\AccessControl;
 use yii\web\Controller;
 use yii\web\Response;
 use yii\filters\VerbFilter;
 use app\models\LoginForm;
-use app\models\ContactForm;
 
 class SiteController extends Controller
 {
@@ -65,6 +66,28 @@ class SiteController extends Controller
     }
 
     /**
+     * Displays register page.
+     *
+     * @return string
+     */
+    public function actionRegister()
+    {
+        $model = new RegisterForm();
+
+        if ($model->load(Yii::$app->request->post()) && $model->validate()) {
+            $user = new User();
+            $user->username = $model->email;
+            $user->password = $model->password;
+            $user->save();
+
+            Yii::$app->user->login($user);
+            $this->goHome();
+        }
+
+        return $this->render('register', [ 'model' => $model]);
+    }
+
+    /**
      * Login action.
      *
      * @return Response|string
@@ -103,7 +126,7 @@ class SiteController extends Controller
      *
      * @return Response|string
      */
-    public function actionContact()
+    /*public function actionContact()
     {
         $model = new ContactForm();
         if ($model->load(Yii::$app->request->post()) && $model->contact(Yii::$app->params['adminEmail'])) {
@@ -114,7 +137,7 @@ class SiteController extends Controller
         return $this->render('contact', [
             'model' => $model,
         ]);
-    }
+    }*/
 
     /**
      * Displays about page.
