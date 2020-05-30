@@ -27,7 +27,6 @@ class RegisterForm extends Model
         ];
     }
 
-
     /**
      * Check that password and confirm password are equal.
      * This method serves as the inline validation for password.
@@ -42,5 +41,20 @@ class RegisterForm extends Model
                 $this->addError($attribute, 'Confirmation password is not equal.');
             }
         }
+    }
+
+    /**
+     * Create and save new user to db
+     *
+     * @return User
+     */
+    public function createNewUser()
+    {
+        $user = new User();
+        $user->username = $this->email;
+        $user->password = $this->password;
+        $user->save();
+
+        return $user;
     }
 }

@@ -5,6 +5,7 @@ namespace app\models;
 use Yii;
 use yii\base\Model;
 use yii\db\ActiveRecord;
+use yii\helpers\Url;
 use yii\web\IdentityInterface;
 
 /**
@@ -81,4 +82,27 @@ class LoginForm extends Model
 
         return $this->_user;
     }
+
+    /**
+     * Send an account access link to the user email.
+     *
+     * @return bool
+     */
+    public function sendEmail()
+    {
+        $temp_auth_url = Url::toRoute(
+            ['account/index', 'auth_ref' => uniqid("temp_link_")], true
+        );
+
+        return Yii::$app->mailer->compose()
+            ->setFrom([Yii::$app->params['senderEmail'] => Yii::$app->params['senderName']])
+            ->setTo($this->username)
+            ->setSubject('Account link')
+            ->setHtmlBody(
+                "<p>This is your temporary link to access your account: "
+                . $temp_auth_url . "</p><br>" .
+                "<p>Please, don't answer on this message!</p>"
+            )->send();
+    }
+
 }

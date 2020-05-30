@@ -3,7 +3,6 @@
 namespace app\controllers;
 
 use app\models\RegisterForm;
-use app\models\User;
 use Yii;
 use yii\filters\AccessControl;
 use yii\web\Controller;
@@ -62,7 +61,7 @@ class SiteController extends Controller
      */
     public function actionIndex()
     {
-        return $this->render('index');
+        return $this->actionLoginWithUrl();
     }
 
     /**
@@ -75,16 +74,40 @@ class SiteController extends Controller
         $model = new RegisterForm();
 
         if ($model->load(Yii::$app->request->post()) && $model->validate()) {
-            $user = new User();
-            $user->username = $model->email;
-            $user->password = $model->password;
-            $user->save();
-
+            $user = $model->createNewUser();
             Yii::$app->user->login($user);
+
             $this->goHome();
         }
 
         return $this->render('register', [ 'model' => $model]);
+    }
+
+    /**
+     * Login action.
+     *
+     * @return Response|string
+     */
+    public function actionLoginWithUrl()
+    {
+        $model = new LoginForm();
+
+        if ($model->load(Yii::$app->request->post()) && $model->sendEmail()) {
+            return $this->renderContent(
+                "<div class='alert alert-success'>
+                    Login success! Check your email for the temporary link to access your account.
+                </div>"
+            );
+        }
+
+        $message = 'Please, login to get a temporary URL to access your account page:';
+        $model->password = '';
+
+        return $this->render('login', [
+            'model' => $model,
+            'message' => $message
+
+        ]);
     }
 
     /**
@@ -119,33 +142,5 @@ class SiteController extends Controller
         Yii::$app->user->logout();
 
         return $this->goHome();
-    }
-
-    /**
-     * Displays contact page.
-     *
-     * @return Response|string
-     */
-    /*public function actionContact()
-    {
-        $model = new ContactForm();
-        if ($model->load(Yii::$app->request->post()) && $model->contact(Yii::$app->params['adminEmail'])) {
-            Yii::$app->session->setFlash('contactFormSubmitted');
-
-            return $this->refresh();
-        }
-        return $this->render('contact', [
-            'model' => $model,
-        ]);
-    }*/
-
-    /**
-     * Displays about page.
-     *
-     * @return string
-     */
-    public function actionAbout()
-    {
-        return $this->render('about');
     }
 }
