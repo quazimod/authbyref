@@ -33,7 +33,7 @@ class LoginForm extends Model
             [['username', 'password'], 'required'],
             // rememberMe must be a boolean value
             ['rememberMe', 'boolean'],
-            [['username', 'password'], 'validateUser'],
+            ['username', 'validateUser'],
         ];
     }
 
@@ -48,7 +48,9 @@ class LoginForm extends Model
         if (!$this->hasErrors()) {
             $user = $this->getUser();
 
-            if (!$user || !$user->validatePassword($this->password)) {
+            if (!$user || !Yii::$app->getSecurity()->
+                validatePassword($this->password, $user->password_hash)) {
+
                 $this->addError($attribute, 'Incorrect username or password.');
             }
         }

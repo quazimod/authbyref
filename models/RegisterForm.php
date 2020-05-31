@@ -3,6 +3,7 @@
 
 namespace app\models;
 
+use Yii;
 use yii\base\Model;
 
 class RegisterForm extends Model
@@ -23,8 +24,18 @@ class RegisterForm extends Model
             [['email', 'password', 'confirmPassword'], 'default'],
             ['email', 'email', 'message' => 'Please enter a valid email.'],
             [['email','password', 'confirmPassword'], 'string', 'max' => 256],
+            ['email', 'validateUsername'],
             ['password', 'validatePassword']
         ];
+    }
+
+    public function validateUsername($attribute)
+    {
+        if (!$this->hasErrors()) {
+            if (User::findByUsername($this->email)) {
+                $this->addError($attribute, 'User with that email already exists.');
+            }
+        }
     }
 
     /**
@@ -46,15 +57,20 @@ class RegisterForm extends Model
     /**
      * Create and save new user to db
      *
-     * @return User
+     * @return User|null
      */
     public function createNewUser()
     {
-        $user = new User();
-        $user->username = $this->email;
-        $user->password = $this->password;
-        $user->save();
+        if ($this->validate()) {
+            $user = new User();
+            $user->username = $this->email;
+            $user->password_hash = Yii::$app->getSecurity()->
+                generatePasswordHash($this->password);
+            $user->save();
 
-        return $user;
+            return $user;
+        }
+
+        return null;
     }
 }

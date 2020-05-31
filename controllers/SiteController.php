@@ -76,7 +76,6 @@ class SiteController extends Controller
         if ($model->load(Yii::$app->request->post()) && $model->validate()) {
             $user = $model->createNewUser();
             Yii::$app->user->login($user);
-
             $this->goHome();
         }
 
