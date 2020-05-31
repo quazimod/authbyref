@@ -10,6 +10,8 @@ class ChangeEmailForm extends Model
     public $newEmail;
     public $confirmNewEmail;
 
+    private $_user;
+
     /**
      * @return array the validation rules.
      */
@@ -18,14 +20,30 @@ class ChangeEmailForm extends Model
         return [
             [['email', 'newEmail', 'confirmNewEmail'], 'required',
                 'message' => 'Email cannot be blank.'],
-            [['email', 'newEmail', 'confirmNewEmail'], 'trim'],
-            [['email', 'newEmail', 'confirmNewEmail'], 'default'],
             [['email', 'newEmail', 'confirmNewEmail'], 'email',
                 'message' => 'Please enter a valid email.'],
             [['email', 'newEmail', 'confirmNewEmail'], 'string', 'max' => 256],
+            [['email', 'newEmail', 'confirmNewEmail'], 'trim'],
+            [['email', 'newEmail', 'newEmail'], 'default'],
+            ['email', 'validateEmail'],
             ['newEmail', 'validateNewEmail'],
             ['confirmNewEmail', 'validateConfirmEmail'],
         ];
+    }
+
+    /**
+     * Validates user current email.
+     * This method serves as the inline validation for email.
+     *
+     * @param string $attribute the attribute currently being validated
+     */
+    public function validateEmail($attribute)
+    {
+        if (!$this->hasErrors()) {
+            if ($this->email !== $this->_user->username) {
+                $this->addError($attribute, 'Invalid current email.');
+            }
+        }
     }
 
     /**
@@ -38,7 +56,7 @@ class ChangeEmailForm extends Model
     {
         if (!$this->hasErrors()) {
             if ($this->email === $this->newEmail) {
-                $this->addError($attribute, 'New email can`t be same as current email.');
+                $this->addError($attribute, 'New email can`t be equal as current email.');
             }
         }
     }
@@ -53,8 +71,40 @@ class ChangeEmailForm extends Model
     {
         if (!$this->hasErrors()) {
             if ($this->confirmNewEmail !== $this->newEmail) {
-                $this->addError($attribute, 'Confirmation email must be equal to the new email.');
+                $this->addError($attribute, 'Confirmation email must be equal as the new email.');
             }
         }
+    }
+
+    /**
+     * @return User
+     */
+    public function getUser()
+    {
+        return $this->_user;
+    }
+
+    /**
+     * @param User $user
+     */
+    public function setUser(User $user)
+    {
+        $this->_user = $user;
+    }
+
+    /**
+     * Save new user email.
+     *
+     * @return bool
+     */
+    public function saveNewUserEmail()
+    {
+        if ($this->validate()) {
+            $this->_user->username = $this->newEmail;
+            $this->_user->save();
+            return true;
+        }
+
+        return false;
     }
 }

@@ -10,6 +10,8 @@ class ChangePasswordForm extends Model
     public $newPassword;
     public $confirmNewPassword;
 
+    private $_user;
+
     /**
      * @return array the validation rules.
      */
@@ -21,9 +23,24 @@ class ChangePasswordForm extends Model
             [['password', 'newPassword', 'confirmNewPassword'], 'trim'],
             [['password', 'newPassword', 'confirmNewPassword'], 'default'],
             [['password', 'newPassword', 'confirmNewPassword'], 'string', 'max' => 256],
+            ['password', 'validatePassword'],
             ['newPassword', 'validateNewPassword'],
-            ['confirmNewPassword', 'validateConfirmNewPassword'],
+            ['confirmNewPassword', 'validateConfirmPassword'],
         ];
+    }
+
+    /**
+     * Validates user current password.
+     *
+     * @param string $attribute the attribute currently being validated
+     */
+    public function validatePassword($attribute)
+    {
+        if (!$this->hasErrors()) {
+            if ($this->getUser()->password !== $this->password) {
+                $this->addError($attribute, 'Wrong current password.');
+            }
+        }
     }
 
     /**
@@ -35,7 +52,7 @@ class ChangePasswordForm extends Model
     {
         if (!$this->hasErrors()) {
             if ($this->password === $this->newPassword) {
-                $this->addError($attribute, 'New password can`t be same as current password.');
+                $this->addError($attribute, 'New password can`t be equal as current password.');
             }
         }
     }
@@ -45,12 +62,44 @@ class ChangePasswordForm extends Model
      *
      * @param string $attribute the attribute currently being validated
      */
-    public function validateConfirmNewPassword($attribute)
+    public function validateConfirmPassword($attribute)
     {
         if (!$this->hasErrors()) {
             if ($this->confirmNewPassword !== $this->newPassword) {
-                $this->addError($attribute, 'Confirmation password must be equal to the new email.');
+                $this->addError($attribute, 'Confirmation password must be equal as new password.');
             }
         }
+    }
+
+    /**
+     * @return User
+     */
+    public function getUser()
+    {
+        return $this->_user;
+    }
+
+    /**
+     * @param User $user
+     */
+    public function setUser(User $user)
+    {
+        $this->_user = $user;
+    }
+
+    /**
+     * Save new user password.
+     *
+     * @return bool
+     */
+    public function saveNewUserPassword()
+    {
+        if ($this->validate()) {
+            $this->_user->password = $this->newPassword;
+            $this->_user->save();
+            return true;
+        }
+
+        return false;
     }
 }

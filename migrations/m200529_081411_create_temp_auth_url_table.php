@@ -14,7 +14,7 @@ class m200529_081411_create_temp_auth_url_table extends Migration
     {
         $this->createTable('{{%temp_auth_url}}', [
             'id' => $this->primaryKey(),
-            'key' => $this->string('23')->notNull(),
+            'key' => $this->string('64')->notNull(),
             'user_id' => $this->integer()->notNull(),
             'created_at' => $this->datetime()->notNull(),
             'updated_at' => $this->datetime(),

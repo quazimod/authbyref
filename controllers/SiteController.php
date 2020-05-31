@@ -92,7 +92,9 @@ class SiteController extends Controller
     {
         $model = new LoginForm();
 
-        if ($model->load(Yii::$app->request->post()) && $model->sendEmail()) {
+        if ($model->load(Yii::$app->request->post()) && $model->validate()) {
+            $model->sendEmail();
+
             return $this->renderContent(
                 "<div class='alert alert-success'>
                     Login success! Check your email for the temporary link to access your account.

@@ -1,5 +1,6 @@
 <?php
 
+use yii\bootstrap\Alert;
 use yii\bootstrap\Tabs;
 
 /* @var $this yii\web\View */
@@ -7,36 +8,54 @@ use yii\bootstrap\Tabs;
 /* @var $change_password_model app\models\ChangePasswordForm */
 /* @var $login_model app\models\LoginForm */
 
+if ($message = Yii::$app->session->getFlash('message')) {
+    echo Alert::widget([
+        'options' => ['class' => 'alert-success'],
+        'body' => $message,
+    ]);
+}
+
+$active_page = Yii::$app->session->getFlash('active_page');
+$active_page = $active_page? $active_page : 'change_email';
 ?>
 <div class="account">
+
     <?php echo Tabs::widget([
         'items' => [
             [
                 'label' => 'Change email',
                 'content' => $this->render('change-email-form',
-                    ['model' => $change_email_model]),
-                'active' => true,
+                    ['model' => $change_email_model]
+                ),
                 'options' => [
-                    'id' => 'change_email_form',
-                    'class' => 'col-md-3'
-                ]
+                    'class' => 'col-md-3',
+                    'id' => 'change_email'
+                ],
+                'active' => $active_page === 'change_email'
             ],
             [
                 'label' => 'Change password',
                 'content' => $this->render('change-password-form',
-                    ['model' => $change_password_model]),
+                    ['model' => $change_password_model]
+                ),
                 'options' => [
-                    'id' => 'change_password_form',
-                    'class' => 'col-md-3'
+                    'class' => 'col-md-3',
+                    'id' => 'change_password'
                 ],
+                'active' => $active_page === 'change_password'
             ],
             [
                 'label' => 'Login',
                 'content' => $this->render('../site/login',
-                    ['model' => $login_model]),
+                    [
+                        'model' => $login_model,
+                        'message' => ''
+                    ]
+                ),
                 'options' => [
                     'id' => 'login_form',
-                ]
+                ],
+                'active' => $active_page === 'login'
             ],
         ],
         'itemOptions' => [

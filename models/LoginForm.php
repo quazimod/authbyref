@@ -33,19 +33,17 @@ class LoginForm extends Model
             [['username', 'password'], 'required'],
             // rememberMe must be a boolean value
             ['rememberMe', 'boolean'],
-            // password is validated by validatePassword()
-            ['password', 'validatePassword'],
+            [['username', 'password'], 'validateUser'],
         ];
     }
 
     /**
-     * Validates the password.
+     * Validates the user data.
      * This method serves as the inline validation for password.
      *
      * @param string $attribute the attribute currently being validated
-     * @param array $params the additional name-value pairs given in the rule
      */
-    public function validatePassword($attribute)
+    public function validateUser($attribute)
     {
         if (!$this->hasErrors()) {
             $user = $this->getUser();
@@ -63,7 +61,8 @@ class LoginForm extends Model
     public function login()
     {
         if ($this->validate()) {
-            return Yii::$app->user->login($this->getUser(), $this->rememberMe ? 3600*24*30 : 0);
+            return Yii::$app->user->login($this->getUser(),
+                $this->rememberMe ? 3600*24*30 : 0);
         }
 
         return false;
@@ -84,23 +83,65 @@ class LoginForm extends Model
     }
 
     /**
-     * Send an account access link to the user email.
+     * @param User $user
+     */
+    public function setUser($user)
+    {
+        $this->_user = $user;
+    }
+
+    /**
+     * Create temporary authorization link to user account.
+     *
+     * @return string
+     */
+    public function createUserAuthLink() {
+        $user = $this->getUser();
+        $auth_key = uniqid("temp_link_");
+        $auth_ref_url = Url::toRoute(
+            ['account/index', 'auth_ref' => $auth_key], true
+        );
+
+        Yii::$app->db->createCommand()->delete('temp_auth_url', [
+            'user_id' => $user->id,
+        ])->execute();
+
+        Yii::$app->db->createCommand()->insert('temp_auth_url', [
+            'key' => $auth_key,
+            'user_id' => $user->id,
+            'created_at' => date("Y-m-d H:i:s"),
+            'updated_at' => date("Y-m-d H:i:s"),
+        ])->execute();
+
+        return $auth_ref_url;
+    }
+
+    /**
+     * Delete temporary authorization link to user account.
+     *
+     */
+    public function deleteAuthRef() {
+        $user = $this->getUser();
+
+        Yii::$app->db->createCommand()->delete('temp_auth_url', [
+            'user_id' => $user->id,
+        ])->execute();
+    }
+
+    /**
+     * Send an account access link to user email.
      *
      * @return bool
      */
     public function sendEmail()
     {
-        $temp_auth_url = Url::toRoute(
-            ['account/index', 'auth_ref' => uniqid("temp_link_")], true
-        );
-
         return Yii::$app->mailer->compose()
             ->setFrom([Yii::$app->params['senderEmail'] => Yii::$app->params['senderName']])
             ->setTo($this->username)
             ->setSubject('Account link')
             ->setHtmlBody(
                 "<p>This is your temporary link to access your account: "
-                . $temp_auth_url . "</p><br>" .
+                . $this->createUserAuthLink() . "</p><br>" .
                 "<p>Please, don't answer on this message!</p>"
             )->send();
     }

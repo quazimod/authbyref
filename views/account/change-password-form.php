@@ -8,9 +8,9 @@ $form = ActiveForm::begin([
 ]);
 ?>
 
-<?= $form->field($model, 'password') ?>
-<?= $form->field($model, 'newPassword')->label('New password') ?>
-<?= $form->field($model, 'confirmNewPassword')->label('Confirm new password') ?>
+<?= $form->field($model, 'password')->passwordInput() ?>
+<?= $form->field($model, 'newPassword')->passwordInput()->label('New password') ?>
+<?= $form->field($model, 'confirmNewPassword')->passwordInput()->label('Confirm new password') ?>
 
 <div class="form-group">
     <?= Html::submitButton('Submit', ['class' => 'btn btn-primary']) ?>

@@ -5,6 +5,7 @@ namespace app\models;
 use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveRecord;
 use yii\db\Expression;
+use yii\db\Query;
 use yii\web\IdentityInterface;
 
 class User extends ActiveRecord implements IdentityInterface
@@ -21,6 +22,22 @@ class User extends ActiveRecord implements IdentityInterface
                 'value' => new Expression('NOW()'),
             ],
         ];
+    }
+
+    public static function getAuthRef($key) {
+        return (new Query())
+            ->select('*')
+            ->from('temp_auth_url')
+            ->where(['key' => $key])
+            ->one();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getAuthKey()
+    {
+        return $this->authKey;
     }
 
     /**
@@ -56,14 +73,6 @@ class User extends ActiveRecord implements IdentityInterface
     public function getId()
     {
         return $this->id;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getAuthKey()
-    {
-        return $this->authKey;
     }
 
     /**

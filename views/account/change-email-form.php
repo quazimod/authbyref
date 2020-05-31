@@ -6,6 +6,7 @@ use yii\bootstrap\Html;
 $form = ActiveForm::begin([
     'id'=>'change_email_form',
 ]);
+
 ?>
 
 <?= $form->field($model, 'email') ?>
